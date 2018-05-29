@@ -7,3 +7,10 @@
 .idea/dictionaries
 .idea/libraries
 .idea/caches
+
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
