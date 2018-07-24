@@ -2,7 +2,7 @@ import tensorflow as tf
 
 def normailize(inputs,
                epsilon=1e-8,
-               scoper="ln",
+               scope="ln",
                reuse=None):
     """
 
@@ -14,7 +14,7 @@ def normailize(inputs,
     """
     with tf.variable_scope(scope, reuse=reuse):
         inputs_shape = inputs.get_shape()
-        param_shape = inpits_shape[-1:]
+        param_shape = inputs_shape[-1:]
 
         mean, variance = tf.nn.moments(inputs, [-1], keep_dims=True)
         beta = tf.Variable(tf.zeros(params_shape))
@@ -105,7 +105,7 @@ def relative_inner(x, y, z, transpose):
     :return:
     """
     xy_matmul = tf.matmul(x, y, transpose_b = transpose)
-    x_t = tf.transpose(x, [1,0,2])
+    x_t = tf.transpose(x, [1, 0, 2])
     x_tz_matmul = tf.matmul(x_t, z, transpose_b = transpose)
     x_tz_matmul_t = tf.transpose(x_tz_matmul, [1,0,2])
     return xy_matmul + x_tz_matmul_t
@@ -120,7 +120,7 @@ def multihead_attention(queries,
                         dropout_rate=0,
                         is_training=True,
                         causality=False,
-                        scpoe="multihead_attention",
+                        scope="multihead_attention",
                         relative_mode=False,
                         max_relative_position=2,
                         reuse=None):
@@ -173,7 +173,7 @@ def multihead_attention(queries,
     return outputs
 
 def feedforward(inputs,
-                num_uits=[2048,512],
+                num_units=[2048,512],
                 scope="multihead_attention",
                 reuse=None):
     """
@@ -199,7 +199,7 @@ def feedforward(inputs,
         outputs += inputs
 
         # Normalize
-        outputs = normalize(outputs)
+        outputs = normailize(outputs)
 
     return outputs
 

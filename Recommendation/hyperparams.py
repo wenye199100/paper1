@@ -19,7 +19,7 @@ class Hyperparams:
     num_blocks = 6
     num_epochs = 20
     num_heads = 8
-    drop_rate = 0.1
+    dropout_rate = 0.1
 
 
 
