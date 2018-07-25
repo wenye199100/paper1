@@ -51,7 +51,6 @@ def embedding(inputs,
     '''
     with tf.variable_scope(scope, reuse=reuse):
         lookup_table = tf.get_variable('lookup_table',
-                                       dytpe = tf.float32,
                                        shape=[vocab_size, num_units],
                                        initializer=tf.contrib.layers.xavier_initializer())
         if zero_pad:
@@ -159,6 +158,8 @@ def multihead_attention(queries,
             weights = tf.matmul(Q_Muti, tf.transpose(K_Muti, [0, 2, 1]))
 
         weights = weights / (K_Muti.get_shape().as_list()[-1] ** 0.5)
+
+        weights = tf.nn.softmax(weights)
 
         if relative_mode:
             V_Relative = relative_position_embeddings(keys, max_relative_position, "relative_position_values")
