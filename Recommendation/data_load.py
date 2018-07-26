@@ -86,4 +86,10 @@ if __name__ == '__main__':
     X_train, U_train, Y_train, X_test, U_test, Y_test = make_train_test_data()
     x, u, y ,num_batch = get_batch_data(X_train, U_train, Y_train)
 
+    # user2idx, idx2user, item2idx, idx2item = load_all_dict(hp.fname)
+    # y_ = tf.one_hot(y, depth=len(item2idx))
+    # with tf.Session() as sess:
+    #     sess.run(tf.global_variables_initializer())
+    #     print(sess.run(tf.shape(y_)))
+    #     print('-----------------------------')
     print 'Done'

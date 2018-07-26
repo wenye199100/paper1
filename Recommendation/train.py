@@ -40,7 +40,7 @@ class Graph():
                                       scale=False,
                                       scope="enc_pe")
 
-                self.enc += embedding(self.u,
+                self.enc += embedding(tf.tile(self.u, multiples=[1, hp.max_len]),
                                      vocab_size=len(user2idx),
                                      num_units=hp.hidden_units,
                                      scale=True,
@@ -82,5 +82,31 @@ class Graph():
                 self.scores = tf.nn.softmax(self.scores)
 
                 if is_training:
-                    
-                    # Loss
+                    self.y_ = tf.one_hot(self.y, depth=len(item2idx))
+                    self.y_smoothed = label_smoothing(self.y_)
+                    self.loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.scores, labels=self.y_smoothed)
+                    self.mean_loss = tf.reduce_sum(self.loss)
+
+                    self.global_step = tf.Variable(0, name='global_step', trainable=False)
+                    self.optimizer = tf.train.AdamOptimizer(learning_rate=hp.lr, beta1=0.9, beta2=0.98, epsilon=1e-8)
+                    self.train_op = self.optimizer.minimize(self.mean_loss, global_step=self.global_step)
+
+if __name__ == '__main__':
+    user2idx, idx2user, item2idx, idx2item = load_all_dict(hp.fname)
+
+    g = Graph("train")
+    print("Graph loaded")
+
+    sv = tf.train.Supervisor(graph=g.graph,
+                             logdir=hp.logdir,
+                             save_model_secs=0)
+    with sv.managed_session() as sess:
+        for epoch in range(1, hp.num_epochs + 1):
+            if sv.should_stop(): break
+            for step in tqdm(range(g.num_batch), total=g.num_batch, ncols=70, leave=False, unit='b'):
+                sess.run(g.train_op)
+
+            gs = sess.run(g.global_step)
+            sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
+
+    print("Done")
