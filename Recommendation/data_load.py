@@ -3,6 +3,7 @@ from preprocess import load_all_dict, sort_user_sequence_dict
 import numpy as np
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
+import pickle
 
 def generate_subseq(uid, x_list, users, seqs, labs):
     for i in range(1, len(x_list)):
@@ -62,7 +63,44 @@ def make_train_test_data():
     return X_train, U_train, Y_train, X_test, U_test, Y_test
 
 
-def get_batch_data(X_train, U_train, Y_train):
+def save_train_test_data():
+    X_train, U_train, Y_train, X_test, U_test, Y_test = make_train_test_data()
+    with open('train-test-data/train', 'wb') as fout:
+        pickle.dump(X_train, fout)
+        pickle.dump(U_train, fout)
+        pickle.dump(Y_train, fout)
+    with open('train-test-data/test', 'wb') as fout:
+        pickle.dump(X_test, fout)
+        pickle.dump(U_test, fout)
+        pickle.dump(Y_test, fout)
+
+def load_train_test_data():
+    with open('train-test-data/train', 'rb') as fout:
+        X_train = pickle.load(fout)
+        U_train = pickle.load(fout)
+        Y_train = pickle.load(fout)
+    with open('train-test-data/test', 'rb') as fout:
+        X_test = pickle.load(fout)
+        U_test = pickle.load(fout)
+        Y_test = pickle.load(fout)
+    return X_train, U_train, Y_train, X_test, U_test, Y_test
+
+def load_train_data():
+    with open('train-test-data/train', 'rb') as fout:
+        X_train = pickle.load(fout)
+        U_train = pickle.load(fout)
+        Y_train = pickle.load(fout)
+    return X_train, U_train, Y_train
+
+def load_test_data():
+    with open('train-test-data/test', 'rb') as fout:
+        X_test = pickle.load(fout)
+        U_test = pickle.load(fout)
+        Y_test = pickle.load(fout)
+    return X_test, U_test, Y_test
+
+def get_batch_data():
+    X_train, U_train, Y_train = load_train_data()
     num_batch = len(X_train) // hp.batch_size
 
     X = tf.convert_to_tensor(X_train, tf.int32)
@@ -83,8 +121,9 @@ def get_batch_data(X_train, U_train, Y_train):
 
 
 if __name__ == '__main__':
-    X_train, U_train, Y_train, X_test, U_test, Y_test = make_train_test_data()
-    x, u, y ,num_batch = get_batch_data(X_train, U_train, Y_train)
+    save_train_test_data()
+    X_train, U_train, Y_train, X_test, U_test, Y_test = load_train_test_data()
+    x, u, y, num_batch = get_batch_data()
 
     # user2idx, idx2user, item2idx, idx2item = load_all_dict(hp.fname)
     # y_ = tf.one_hot(y, depth=len(item2idx))
