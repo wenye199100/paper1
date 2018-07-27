@@ -1,6 +1,23 @@
 import numpy as np
 import tensorflow as tf
 
+def top_test():
+    input = tf.constant(np.random.rand(3,4))
+    k = 2
+    output = tf.nn.top_k(input, k)
+    input = tf.to_float(input)
+    index = tf.constant([[3],[3],[3]])
+    index = tf.reshape(index, shape=index.get_shape()[:-1])
+    output2 = tf.nn.in_top_k(input,index,2)
+    a = tf.reduce_sum(tf.to_float(output2))
+
+    with tf.Session() as sess:
+        print sess.run(input)
+        print sess.run(output)
+        print sess.run(a)
+
+    return output
+
 def embedding(inputs,
               vocab_size,
               num_units,
@@ -120,4 +137,5 @@ def lalala():
     print list
 
 if __name__ == '__main__':
-    aa3()
+    output = top_test()
+    print output[0]

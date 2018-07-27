@@ -37,5 +37,21 @@ def eval():
                     y_test = Y_test[i * hp.batch_size: (i+1) * hp.batch_size]
 
                     preds = np.zeros((hp.batch_size, 1), np.int32)
+                    _preds = sess.run(g.preds_1, {g.x: x_test, g.u: u_test, g.y: preds})
+                    preds_1 = _preds
+
+                    _preds = sess.run(g.preds_5, {g.x: x_test, g.u: u_test, g.y: preds})
+                    preds_5 = _preds
+
+                    _preds = sess.run(g.preds_10, {g.x: x_test, g.u: u_test, g.y: preds})
+                    preds_10 = _preds
+
+                    for x, u, y, pred in zip(x_test, u_test, y_test, preds_1):
+                        fout.write("--seuqence: " + x + "\n")
+                        fout.write("--user: "  + u + "\n")
+                        fout.write("--expected: " + y + "\n")
+                        fout.write("--predict: " + pred + "\n\n")
+                        fout.flush()
+
 
 

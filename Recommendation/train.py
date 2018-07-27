@@ -75,12 +75,27 @@ class Graph():
                                        zero_pad=False,
                                        scale=False,
                                        scope="items")
-                BI_scores = tf.matmul(self.C, self.B) # (N, C)
-                self.scores = tf.matmul(BI_scores, self.items, transpose_b=True) # (N, L)
+                self.BI_scores = tf.matmul(self.C, self.B) # (N, C)
+                self.scores = tf.matmul(self.BI_scores, self.items, transpose_b=True) # (N, L)
                 self.scores = tf.nn.softmax(self.scores)
-                self.preds = tf.to_int32(tf.arg_max(self.scores, dimension=-1))
-                self.acc = tf.reduce_sum(tf.to_float(tf.equal(self.preds, self.y))) / tf.shape(self.y)[0]
-                tf.summary.scalar('acc', self.acc)
+
+                self.preds_1 = tf.to_int32(tf.arg_max(self.scores, dimension=-1))
+                self.acc_1 = tf.reduce_sum(tf.to_float(tf.equal(self.preds_1, self.y))) / tf.shape(self.y)[0]
+
+                self.y_rank1 = tf.reshape(self.y, shape=self.y.get_shape()[:-1])
+                self.top_5 = tf.nn.top_k(self.scores, 5)
+                self.preds_5 = self.top_5[1]
+                self.sum_5 = tf.nn.in_top_k(self.scores, self.y_rank1, 5)
+                self.acc_5 = tf.reduce_sum(tf.to_float(self.sum_5)) / tf.shape(self.y)[0]
+
+                self.top_10 = tf.nn.top_k(self.scores, 10)
+                self.preds_10 = self.top_10[1]
+                self.sum_10 = tf.nn.in_top_k(self.scores, self.y_rank1, 10)
+                self.acc_10 = tf.reduce_sum(tf.to_float(self.sum_10)) / tf.shape(self.y)[0]
+
+                tf.summary.scalar('acc_1', self.acc_1)
+                tf.summary.scalar('acc_5', self.acc_5)
+                tf.summary.scalar('acc_10', self.acc_10)
 
                 if is_training:
                     self.y_ = tf.one_hot(self.y, depth=len(item2idx))
