@@ -76,8 +76,11 @@ class Graph():
                                        scale=False,
                                        scope="items")
                 BI_scores = tf.matmul(self.C, self.B) # (N, C)
-                self.scores = tf.matmul(BI_scores, self.items, transpose_b=True)
+                self.scores = tf.matmul(BI_scores, self.items, transpose_b=True) # (N, L)
                 self.scores = tf.nn.softmax(self.scores)
+                self.preds = tf.to_int32(tf.arg_max(self.scores, dimension=-1))
+                self.acc = tf.reduce_sum(tf.to_float(tf.equal(self.preds, self.y))) / tf.shape(self.y)[0]
+                tf.summary.scalar('acc', self.acc)
 
                 if is_training:
                     self.y_ = tf.one_hot(self.y, depth=len(item2idx))
@@ -88,6 +91,9 @@ class Graph():
                     self.global_step = tf.Variable(0, name='global_step', trainable=False)
                     self.optimizer = tf.train.AdamOptimizer(learning_rate=hp.lr, beta1=0.9, beta2=0.98, epsilon=1e-8)
                     self.train_op = self.optimizer.minimize(self.mean_loss, global_step=self.global_step)
+
+                    tf.summary.scalar('mean_loss', self.mean_loss)
+                    self.merged = tf.summary.merge_all()
 
 if __name__ == '__main__':
     user2idx, idx2user, item2idx, idx2item = load_all_dict(hp.fname)

@@ -6,6 +6,7 @@ from data_load import *
 from self_attention import *
 from preprocess import *
 from train import Graph
+import codecs
 
 def eval():
     g = Graph(is_training=False)
@@ -27,3 +28,14 @@ def eval():
 
             ## Inference
             if not os.path.exists('results'): os.mkdir('results')
+            with codecs.open("results/" + mname, "w", "utf-8") as fout:
+                list_of_refs, hypotheses = [], []
+                for i in range(len(X_test) // hp.batch_size):
+
+                    x_test = X_test[i * hp.batch_size: (i+1) * hp.batch_size]
+                    u_test = U_test[i * hp.batch_size: (i+1) * hp.batch_size]
+                    y_test = Y_test[i * hp.batch_size: (i+1) * hp.batch_size]
+
+                    preds = np.zeros((hp.batch_size, 1), np.int32)
+
+
