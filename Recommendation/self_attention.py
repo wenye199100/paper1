@@ -1,4 +1,5 @@
 import tensorflow as tf
+from hyperparams import Hyperparams as hp
 
 def normailize(inputs,
                epsilon=1e-8,
@@ -14,13 +15,15 @@ def normailize(inputs,
     """
     with tf.variable_scope(scope, reuse=reuse):
         inputs_shape = inputs.get_shape()
-        param_shape = inputs_shape[-1:]
+        params_shape = inputs_shape[-1:]
 
         mean, variance = tf.nn.moments(inputs, [-1], keep_dims=True)
         beta = tf.Variable(tf.zeros(params_shape))
         gamma = tf.Variable(tf.ones(params_shape))
         normalized = (inputs - mean) / ((variance + epsilon) ** (.5))
         outputs = gamma * normalized + beta
+
+    return outputs
 
 
 def embedding(inputs,
@@ -51,6 +54,7 @@ def embedding(inputs,
     '''
     with tf.variable_scope(scope, reuse=reuse):
         lookup_table = tf.get_variable('lookup_table',
+                                       dtype=tf.float32,
                                        shape=[vocab_size, num_units],
                                        initializer=tf.contrib.layers.xavier_initializer())
         if zero_pad:
@@ -173,8 +177,9 @@ def multihead_attention(queries,
 
     return outputs
 
+
 def feedforward(inputs,
-                num_units=[2048,512],
+                num_units=[2048, 512],
                 scope="multihead_attention",
                 reuse=None):
     """
@@ -195,6 +200,8 @@ def feedforward(inputs,
         params = {"inputs": outputs, "filters": num_units[1], "kernel_size": 1,
                   "activation": None, "use_bias": True}
         outputs = tf.layers.conv1d(**params)
+        # outputs = tf.layers.dense(inputs, hp.hidden_units)
+
 
         # Residual connection
         outputs += inputs

@@ -8,6 +8,27 @@ from preprocess import *
 from train import Graph
 import codecs
 
+
+def caculate_precision_recall(list_of_expected, list_of_preds):
+    precision, recall = [], []
+    sum_1, sum_5, sum_10 = 0.0, 0.0, 0.0
+    for expected, preds in zip(list_of_expected, list_of_preds):
+        sum_1 += float(expected in preds[:1])
+        sum_5 += float(expected in preds[:5])
+        sum_10 += float(expected in preds)
+    precision.append(sum_1 / float(len(expected) * 1))
+    precision.append(sum_5 / float(len(expected) * 5))
+    precision.append(sum_10 / float(len(expected) * 10))
+
+    recall.append(sum_1 / float(len(expected) * 1))
+    recall.append(sum_5 / float(len(expected) * 1))
+    recall.append(sum_10 / float(len(expected) * 1))
+    return precision, recall
+
+
+
+
+
 def eval():
     g = Graph(is_training=False)
     print "Graph loaded"
@@ -29,7 +50,7 @@ def eval():
             ## Inference
             if not os.path.exists('results'): os.mkdir('results')
             with codecs.open("results/" + mname, "w", "utf-8") as fout:
-                list_of_refs, hypotheses = [], []
+                list_of_preds, expected = [], []
                 for i in range(len(X_test) // hp.batch_size):
 
                     x_test = X_test[i * hp.batch_size: (i+1) * hp.batch_size]
@@ -37,21 +58,28 @@ def eval():
                     y_test = Y_test[i * hp.batch_size: (i+1) * hp.batch_size]
 
                     preds = np.zeros((hp.batch_size, 1), np.int32)
+
                     _preds = sess.run(g.preds_1, {g.x: x_test, g.u: u_test, g.y: preds})
                     preds_1 = _preds
-
+                    
                     _preds = sess.run(g.preds_5, {g.x: x_test, g.u: u_test, g.y: preds})
                     preds_5 = _preds
 
                     _preds = sess.run(g.preds_10, {g.x: x_test, g.u: u_test, g.y: preds})
                     preds_10 = _preds
 
-                    for x, u, y, pred in zip(x_test, u_test, y_test, preds_1):
+                    for x, u, y, pred in zip(x_test, u_test, y_test, preds_10):
                         fout.write("--seuqence: " + x + "\n")
                         fout.write("--user: "  + u + "\n")
                         fout.write("--expected: " + y + "\n")
                         fout.write("--predict: " + pred + "\n\n")
                         fout.flush()
+
+                        list_of_expected.append(y)
+                        list_of_preds.append(pred)
+
+                # Calculate precision, recall and map
+
 
 
 

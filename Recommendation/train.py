@@ -22,7 +22,7 @@ class Graph():
 
 
             # Encoder
-            with tf.varible_scope("encoder"):
+            with tf.variable_scope("encoder"):
                 self.enc = embedding(self.x,
                                      vocab_size=len(item2idx),
                                      num_units=hp.hidden_units,
@@ -45,7 +45,7 @@ class Graph():
                                      scope="enc_user")
 
                 for i in range(hp.num_blocks):
-                    with tf.varible_scope("num_blocks_{}".format(i)):
+                    with tf.variable_scope("num_blocks_{}".format(i)):
                         self.enc = multihead_attention(queries=self.enc,
                                                        keys=self.enc,
                                                        num_units=hp.hidden_units,
@@ -68,7 +68,7 @@ class Graph():
                 self.B = tf.get_variable("B", [hp.hidden_units, hp.hidden_units])
 
                 # self.items (L, C)
-                item_lists = tf.range(tf.shape(self.x)[1])
+                item_lists = tf.range(len(item2idx))
                 self.items = embedding(inputs=item_lists,
                                        vocab_size=len(item2idx),
                                        num_units=hp.hidden_units,
@@ -79,19 +79,19 @@ class Graph():
                 self.scores = tf.matmul(self.BI_scores, self.items, transpose_b=True) # (N, L)
                 self.scores = tf.nn.softmax(self.scores)
 
-                self.preds_1 = tf.to_int32(tf.arg_max(self.scores, dimension=-1))
-                self.acc_1 = tf.reduce_sum(tf.to_float(tf.equal(self.preds_1, self.y))) / tf.shape(self.y)[0]
+                self.preds_1 = tf.reshape(tf.to_int32(tf.argmax(self.scores, axis=-1)), [tf.shape(self.x)[0],1])
+                self.acc_1 = tf.reduce_sum(tf.to_float(tf.equal(self.preds_1, self.y))) / tf.to_float(tf.shape(self.y)[0])
 
                 self.y_rank1 = tf.reshape(self.y, shape=self.y.get_shape()[:-1])
                 self.top_5 = tf.nn.top_k(self.scores, 5)
                 self.preds_5 = self.top_5[1]
                 self.sum_5 = tf.nn.in_top_k(self.scores, self.y_rank1, 5)
-                self.acc_5 = tf.reduce_sum(tf.to_float(self.sum_5)) / tf.shape(self.y)[0]
+                self.acc_5 = tf.reduce_sum(tf.to_float(self.sum_5)) / tf.to_float(tf.shape(self.y)[0])
 
                 self.top_10 = tf.nn.top_k(self.scores, 10)
                 self.preds_10 = self.top_10[1]
                 self.sum_10 = tf.nn.in_top_k(self.scores, self.y_rank1, 10)
-                self.acc_10 = tf.reduce_sum(tf.to_float(self.sum_10)) / tf.shape(self.y)[0]
+                self.acc_10 = tf.reduce_sum(tf.to_float(self.sum_10)) / tf.to_float(tf.shape(self.y)[0])
 
                 tf.summary.scalar('acc_1', self.acc_1)
                 tf.summary.scalar('acc_5', self.acc_5)

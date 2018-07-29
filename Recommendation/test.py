@@ -1,6 +1,12 @@
 import numpy as np
 import tensorflow as tf
 
+def argmax():
+    input = tf.constant(np.random.rand(3,4))
+    with tf.Session() as sess:
+        print sess.run(input)
+        print sess.run(tf.argmax(input,1))
+
 def top_test():
     input = tf.constant(np.random.rand(3,4))
     k = 2
@@ -137,5 +143,4 @@ def lalala():
     print list
 
 if __name__ == '__main__':
-    output = top_test()
-    print output[0]
+    argmax()
