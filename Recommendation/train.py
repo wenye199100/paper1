@@ -24,7 +24,7 @@ class Graph():
             # Encoder
             with tf.variable_scope("encoder"):
                 self.enc = embedding(self.x,
-                                     vocab_size=len(item2idx),
+                                     vocab_size=(len(item2idx) + 1),
                                      num_units=hp.hidden_units,
                                      scale=True,
                                      scope="enc_embed")
@@ -38,11 +38,12 @@ class Graph():
                                       scale=False,
                                       scope="enc_pe")
 
-                self.enc += embedding(tf.tile(self.u, multiples=[1, hp.max_len]),
-                                     vocab_size=len(user2idx),
+                self.user = embedding(tf.tile(self.u, multiples=[1, hp.max_len]),
+                                     vocab_size=(len(user2idx)+1),
                                      num_units=hp.hidden_units,
                                      scale=True,
                                      scope="enc_user")
+                self.enc += self.user
 
                 for i in range(hp.num_blocks):
                     with tf.variable_scope("num_blocks_{}".format(i)):

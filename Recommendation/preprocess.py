@@ -72,9 +72,13 @@ def load_dict(fname, type):
 def sort_user_sequence_dict(fname):
     with open('preprocessed/{}_user_sequence_dict'.format(fname), 'rb') as fout:
         user_item_score_time = pickle.load(fout)
+        user_item_score_time_filtered = {}
+        user2idx, idx2user = load_dict(fname, "user")
         for k, v in user_item_score_time.items():
-            v.sort(key = lambda time: time[2])
-    return user_item_score_time
+            if k in user2idx:
+                v.sort(key = lambda time: time[2])
+                user_item_score_time_filtered[k] = v
+    return user_item_score_time_filtered
 
 
 
