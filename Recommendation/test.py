@@ -1,5 +1,9 @@
 import numpy as np
 import tensorflow as tf
+import os
+
+def exist_file():
+    print os.path.isfile("data/movielens/movies.dat")
 
 def argmax():
     input = tf.constant(np.random.rand(3,4))
@@ -143,4 +147,4 @@ def lalala():
     print list
 
 if __name__ == '__main__':
-    argmax()
+    exist_file()

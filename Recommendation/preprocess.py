@@ -8,6 +8,15 @@ from collections import Counter
 from hyperparams import Hyperparams as hp
 
 def make_vocab(fpath, fname):
+    """
+    读取数据文件之后处理
+    1 save <item, cnt> & <user, cnt> into fname_item & fname_user
+    2 save <user, item, rating, time> into fname_user_sequence_dict
+
+    :param fpath: 数据文件存储的位置
+    :param fname: 处理后文件的前缀
+    :return:
+    """
     user_vocab = []
     item_vocab = []
     user_item_score_time = {}
@@ -43,8 +52,27 @@ def make_all_map(fname):
     make_mapping(fname, "user", hp.min_user_cnt)
     make_mapping(fname, "item", hp.min_item_cnt)
 
+def load_all_dict(fname):
+    user2idx, idx2user = load_dict(fname, "user")
+    item2idx, idx2item = load_dict(fname, "item")
+    return user2idx, idx2user, item2idx, idx2item
+
+def load_dict(fname, type):
+    with open('preprocessed/{}_{}_dict'.format(fname, type), 'rb') as fout:
+        word2idx = pickle.load(fout)
+        idx2word = pickle.load(fout)
+    return word2idx, idx2word
+
 
 def make_mapping(fname, type, limit_num):
+    """
+    将make_vocab里得到的<type, cnt>转换成用户或者商品字典
+    save the dict in to fname_type_dict----> fname_user_dict / fname_item_dict
+    :param fname:
+    :param type: user or item
+    :param limit_num: pass user/item if cnt < limet
+    :return:
+    """
     vocab = []
     with open("preprocessed/{}_{}".format(fname, type)) as lines:
         for line in lines:
@@ -58,16 +86,6 @@ def make_mapping(fname, type, limit_num):
         pickle.dump(idx2word, fout)
         pickle.dump(type, fout)
 
-def load_all_dict(fname):
-    user2idx, idx2user = load_dict(fname, "user")
-    item2idx, idx2item = load_dict(fname, "item")
-    return user2idx, idx2user, item2idx, idx2item
-
-def load_dict(fname, type):
-    with open('preprocessed/{}_{}_dict'.format(fname, type), 'rb') as fout:
-        word2idx = pickle.load(fout)
-        idx2word = pickle.load(fout)
-    return word2idx, idx2word
 
 def sort_user_sequence_dict(fname):
     with open('preprocessed/{}_user_sequence_dict'.format(fname), 'rb') as fout:
@@ -85,6 +103,19 @@ def sort_user_sequence_dict(fname):
 
 if __name__ == '__main__':
     fname = hp.fname
+    dataset_name=["movielens","amazon"]
+    fname = dataset_name[0]
+    if not os.path.exists("preprocessed/{}".format(fname)): os.mkdir("preprocessed/{}".format(fname))
+
+    # check make_vocab
+    if not os.path.exists("preprocessed/{}/user".format(fname)):
+        
+
+
+
+
+
+
     select = str(0)
     while select == str(0):
         select = raw_input("0.Change fname.(Default is '{}')\n"
