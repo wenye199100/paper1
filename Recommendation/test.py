@@ -2,6 +2,11 @@ import numpy as np
 import tensorflow as tf
 import os
 
+def split_line():
+    a = "1::2::3::4"
+    b = a.split("::")
+    print b[0]
+
 def exist_file():
     print os.path.isfile("data/movielens/movies.dat")
 
@@ -147,4 +152,4 @@ def lalala():
     print list
 
 if __name__ == '__main__':
-    exist_file()
+    split_line()

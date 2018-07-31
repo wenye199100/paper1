@@ -1,16 +1,10 @@
 from hyperparams import Hyperparams as hp
-from preprocess import load_all_dict, sort_user_sequence_dict
+from preprocess import load_all_dict, load_user_sequence_dict_filtered
 import numpy as np
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import pickle
-
-def generate_subseq(uid, x_list, users, seqs, labs):
-    for i in range(1, len(x_list)):
-        users += [uid]
-        lab = x_list[-i]
-        labs += [lab]
-        seqs += [x_list[:-i]]
+import os
 
 
 def generate_seq(uid, iids_seq, users, seqs, labs):
@@ -26,11 +20,17 @@ def generate_seq(uid, iids_seq, users, seqs, labs):
     else:
         generate_subseq(uid, iids_seq, users, seqs, labs)
 
+def generate_subseq(uid, x_list, users, seqs, labs):
+    for i in range(1, len(x_list)):
+        users += [uid]
+        lab = x_list[-i]
+        labs += [lab]
+        seqs += [x_list[:-i]]
 
 
 def create_data():
     user2idx, idx2user, item2idx, idx2item = load_all_dict(hp.fname)
-    user_sequence = sort_user_sequence_dict(hp.fname)
+    user_sequence = load_user_sequence_dict_filtered(hp.fname)
     print "Process Load Dict Done."
 
     # Make user sequence indexed
@@ -65,35 +65,38 @@ def make_train_test_data():
 
 def save_train_test_data():
     X_train, U_train, Y_train, X_test, U_test, Y_test = make_train_test_data()
-    with open('train-test-data/train', 'wb') as fout:
+    if not os.path.exists("train-test-data/{}".format(hp.fname)):
+        os.mkdir("train-test-data/{}".format(hp.fname))
+
+    with open('train-test-data/{}/train'.format(hp.fname), 'wb') as fout:
         pickle.dump(X_train, fout)
         pickle.dump(U_train, fout)
         pickle.dump(Y_train, fout)
-    with open('train-test-data/test', 'wb') as fout:
+    with open('train-test-data/{}/test'.format(hp.fname), 'wb') as fout:
         pickle.dump(X_test, fout)
         pickle.dump(U_test, fout)
         pickle.dump(Y_test, fout)
 
 def load_train_test_data():
-    with open('train-test-data/train', 'rb') as fout:
+    with open('train-test-data/{}/train'.format(hp.fname), 'rb') as fout:
         X_train = pickle.load(fout)
         U_train = pickle.load(fout)
         Y_train = pickle.load(fout)
-    with open('train-test-data/test', 'rb') as fout:
+    with open('train-test-data/{}/test'.format(hp.fname), 'rb') as fout:
         X_test = pickle.load(fout)
         U_test = pickle.load(fout)
         Y_test = pickle.load(fout)
     return X_train, U_train, Y_train, X_test, U_test, Y_test
 
 def load_train_data():
-    with open('train-test-data/train', 'rb') as fout:
+    with open('train-test-data/{}/train'.format(hp.fname), 'rb') as fout:
         X_train = pickle.load(fout)
         U_train = pickle.load(fout)
         Y_train = pickle.load(fout)
     return X_train, U_train, Y_train
 
 def load_test_data():
-    with open('train-test-data/test', 'rb') as fout:
+    with open('train-test-data/{}/test'.format(hp.fname), 'rb') as fout:
         X_test = pickle.load(fout)
         U_test = pickle.load(fout)
         Y_test = pickle.load(fout)
