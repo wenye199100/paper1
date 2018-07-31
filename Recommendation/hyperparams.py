@@ -1,10 +1,17 @@
 class Hyperparams:
 
     #data path
-    data_fpath = '/home/yewenwen/Project/Paper1/self-attention/Recommendation/data/Musical_Instruments_5.json'
+    data_fpath = 'data/'
     data_train = 'data/train'
     data_test = 'data/test'
-    fname = 'vocab'
+    fname = 'Musical_Instruments_5'
+
+    dataset_name = ["movielens", "Musical_Instruments_5"]
+    type_dict = {"movielens": 0, "Musical_Instruments_5": 1}
+    prefix = {"movielens": "/", "Musical_Instruments_5": "/Musical_Instruments_5"}
+    postfix = {"movielens": "ratings.dat", "Musical_Instruments_5": ".json"}
+
+
 
     #training
     batch_size = 32
