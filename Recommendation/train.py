@@ -4,12 +4,15 @@ from hyperparams import Hyperparams as hp
 from data_load import *
 from self_attention import *
 from preprocess import *
+from eval import *
 
 from tqdm import tqdm
 
 class Graph():
+
     def __init__(self, is_training=True):
         self.graph = tf.Graph()
+        self.is_trainning = is_training
         with self.graph.as_default():
             if is_training:
                 self.x, self.u, self.y, self.num_batch = get_batch_data()
@@ -98,7 +101,7 @@ class Graph():
                 tf.summary.scalar('acc_5', self.acc_5)
                 tf.summary.scalar('acc_10', self.acc_10)
 
-                if is_training:
+                if self.is_training:
                     self.y_ = tf.one_hot(self.y, depth=len(item2idx))
                     self.y_smoothed = label_smoothing(self.y_)
                     self.loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.scores, labels=self.y_smoothed)
@@ -111,8 +114,16 @@ class Graph():
                     tf.summary.scalar('mean_loss', self.mean_loss)
                     self.merged = tf.summary.merge_all()
 
+    def make_trainable_true(self):
+        self.is_trainning = True
+
+    def make_trainable_false(self):
+        self.is_trainning = False
+
 if __name__ == '__main__':
     user2idx, idx2user, item2idx, idx2item = load_all_dict(hp.fname)
+    if not os.path.exists('results'): os.mkdir('results')
+    if not os.path.exists(hp.logdir + '/{}'.format(hp.fname)): os.mkdir(hp.logdir + '/{}'.format(hp.fname))
 
     g = Graph("train")
     print("Graph loaded")
@@ -127,6 +138,45 @@ if __name__ == '__main__':
                 sess.run(g.train_op)
 
             gs = sess.run(g.global_step)
-            sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_gs_%d' % (epoch, gs))
+            sv.saver.save(sess, hp.logdir+ '/{}'.format(hp.fname) + '/model_epoch_%02d_gs_%d' % (epoch, gs))
+
+
+            g.make_trainable_false()
+            mname = hp.fname + "/epoch_%02d" % epoch
+            with codecs.open("results/" + mname, "w", "utf-8") as fout:
+                list_of_preds, list_of_expected = [], []
+                for i in range(len(X_test) // hp.batch_size):
+
+                    x_test = X_test[i * hp.batch_size: (i + 1) * hp.batch_size]
+                    u_test = U_test[i * hp.batch_size: (i + 1) * hp.batch_size]
+                    y_test = Y_test[i * hp.batch_size: (i + 1) * hp.batch_size]
+
+                    preds = np.zeros((hp.batch_size, 1), np.int32)
+
+                    # _preds = sess.run(g.preds_1, {g.x: x_test, g.u: u_test, g.y: preds})
+                    # preds_1 = _preds
+                    #
+                    # _preds = sess.run(g.preds_5, {g.x: x_test, g.u: u_test, g.y: preds})
+                    # preds_5 = _preds
+
+                    _preds = sess.run(g.preds_10, {g.x: x_test, g.u: u_test, g.y: preds})
+                    preds_10 = _preds
+
+                    for x, u, y, pred in zip(x_test, u_test, y_test, preds_10):
+                        fout.write("--seuqence: " + x + "\n")
+                        fout.write("--user: " + u + "\n")
+                        fout.write("--expected: " + y + "\n")
+                        fout.write("--predict: " + pred + "\n\n")
+                        fout.flush()
+
+                        list_of_expected.append(y)
+                        list_of_preds.append(pred)
+
+                f1_score = caculate_f1_score(list_of_expected, list_of_preds)
+                fout.write("F1 Score = " + f1_score)
+                ndcg_score = caculate_ndcg(list_of_expected, list_of_preds)
+                fout.write("NDCG = " + ndcg_score)
+
+            g.make_trainable_true()
 
     print("Done")

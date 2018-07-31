@@ -1,6 +1,16 @@
 import numpy as np
 import tensorflow as tf
 import os
+import math
+
+def log_test():
+    print math.log(3,2)
+
+def f1():
+    p = [1.0, 2.0, 3.0]
+    r = [4.0, 5.0, 6.0]
+    f = map(lambda (a,b): 2 * a * b, zip(p, r))
+    print f
 
 def exist_file():
     print os.path.isfile("data/movielens/movies.dat")
@@ -147,4 +157,4 @@ def lalala():
     print list
 
 if __name__ == '__main__':
-    exist_file()
+    log_test()

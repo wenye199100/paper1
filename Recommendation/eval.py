@@ -7,10 +7,11 @@ from self_attention import *
 from preprocess import *
 from train import Graph
 import codecs
+import math
 
 
-def caculate_precision_recall(list_of_expected, list_of_preds):
-    precision, recall = [], []
+def caculate_f1_score(list_of_expected, list_of_preds):
+    precision, recall, f1_score = [], [], []
     sum_1, sum_5, sum_10 = 0.0, 0.0, 0.0
     for expected, preds in zip(list_of_expected, list_of_preds):
         sum_1 += float(expected in preds[:1])
@@ -23,10 +24,26 @@ def caculate_precision_recall(list_of_expected, list_of_preds):
     recall.append(sum_1 / float(len(expected) * 1))
     recall.append(sum_5 / float(len(expected) * 1))
     recall.append(sum_10 / float(len(expected) * 1))
-    return precision, recall
 
+    f1_score = map(lambda (a,b): 2 * a * b, zip(precision, recall)) / map(lambda (a,b): a + b, zip(precision, recall))
+    return f1_score
 
+def caculate_ndcg(list_of_expected, list_of_preds):
+    ndcg = []
+    sum_1, sum_5, sum_10 = 0.0, 0.0, 0.0
+    for expected, preds in zip(list_of_expected, list_of_preds):
+        if expected in preds[:1]:
+            sum_1 += 1
 
+        if expected in preds[:5]:
+            sum_5 += 1.0 / math.log((float(preds.index(expected) + 1)), 2)
+
+        if expected in preds[:10]:
+            sum_10 += 1.0 / math.log((float(preds.index(expected) + 1)), 2)
+    ndcg.append(sum_1 / float(len(expected) * 1))
+    ndcg.append(sum_5 / float(len(expected) * 1))
+    ndcg.append(sum_10 / float(len(expected) * 1))
+    return ndcg
 
 
 def eval():
