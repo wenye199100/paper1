@@ -3,6 +3,11 @@ import tensorflow as tf
 import os
 import math
 
+def tt():
+    a = 8
+    b = 9
+    print a/b
+
 def log_test():
     print math.log(3,2)
 
@@ -157,4 +162,4 @@ def lalala():
     print list
 
 if __name__ == '__main__':
-    log_test()
+    tt()

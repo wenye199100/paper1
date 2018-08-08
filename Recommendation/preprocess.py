@@ -6,6 +6,50 @@ import gzip
 import codecs
 from collections import Counter
 from hyperparams import Hyperparams as hp
+from tqdm import tqdm
+
+def time_bucketize(user_item_score_time, min_time, time_bucket = 86400*7):
+    """
+    将时间离散化
+    :param user_item_score_time:
+    :param min_time:
+    :param max_time:
+    :param time_bucket:
+    :return: 最大的时间大小(离散化之后)
+    """
+    for (uid, item_score_time) in user_item_score_time.items():
+        for l in item_score_time:
+            l.append( (l[2] - min_time) / time_bucket )
+
+
+
+def read_amazon_data_rating_only(fpath):
+    max_time, min_time = 0, 1533631815
+    user_vocab = []
+    item_vocab = []
+    user_item_score_time = {}
+    with open(fpath) as dat_file:
+        for line in tqdm(dat_file):
+            unit = line.split(',')
+            uid = unit[0]
+            iid = unit[1]
+            time = int(unit[3].strip('\n'))
+            score = unit[2]
+            if time < min_time: min_time = time
+            if time > max_time: max_time = time
+            item_score_time = [iid, score, time]
+            if uid in user_item_score_time.keys():
+                user_item_score_time[uid].append(item_score_time)
+            else:
+                tlist = []
+                tlist.append(item_score_time)
+                user_item_score_time[uid] = tlist
+            user_vocab.append(uid)
+            item_vocab.append(iid)
+
+        user2cnt = Counter(user_vocab)
+        item2cnt = Counter(item_vocab)
+        return user2cnt, item2cnt, user_item_score_time, min_time, max_time
 
 
 def read_amazon_data(fpath):
@@ -34,6 +78,7 @@ def read_amazon_data(fpath):
 
 
 def read_movielens_data(fpath):
+    max_time, min_time = 0, 1533631815
     user_vocab = []
     item_vocab = []
     user_item_score_time = {}
@@ -43,7 +88,8 @@ def read_movielens_data(fpath):
             uid = unit[0]
             iid = unit[1]
             score = unit[2]
-            time = unit[3]
+            time = int(unit[3].strip('\n'))
+            if time < min_time: min_time = time
             item_score_time = [iid, score, time]
             if uid in user_item_score_time.keys():
                 user_item_score_time[uid].append(item_score_time)
@@ -53,9 +99,10 @@ def read_movielens_data(fpath):
                 user_item_score_time[uid] = tlist
             user_vocab.append(uid)
             item_vocab.append(iid)
-        user2cnt = Counter(user_vocab)
-        item2cnt = Counter(item_vocab)
-    return user2cnt, item2cnt, user_item_score_time
+
+    user2cnt = Counter(user_vocab)
+    item2cnt = Counter(item_vocab)
+    return user2cnt, item2cnt, user_item_score_time, min_time
 
 
 
@@ -71,7 +118,11 @@ def make_vocab(fpath, fname, ftype):
     :return:
     """
     if ftype == 1: user2cnt, item2cnt, user_item_score_time = read_amazon_data(fpath)
-    if ftype == 0: user2cnt, item2cnt, user_item_score_time = read_movielens_data(fpath)
+    if ftype == 0: user2cnt, item2cnt, user_item_score_time, min_time = read_movielens_data(fpath)
+    if ftype == 2: user2cnt, item2cnt, user_item_score_time, min_time, max_time = read_amazon_data_rating_only(fpath)
+
+    print "Time bucket size {}".format((max_time - min_time) / 604800)
+    time_bucketize(user_item_score_time, min_time)
 
     if not os.path.exists('preprocessed'): os.mkdir('preprocessed')
     with open('preprocessed/{}/user'.format(fname), 'w') as fout:
@@ -93,7 +144,7 @@ def make_mapping(fname, type, limit_num):
     save the dict in to fname_type_dict----> fname_user_dict / fname_item_dict
     :param fname:
     :param type: user or item
-    :param limit_num: pass user/item if cnt < limet
+    :param limit_num: pass user/item if cnt < limit
     :return:
     """
     vocab = []
@@ -125,13 +176,16 @@ def sort_user_sequence_dict(fname):
     user_sequence_dict_filtered = {}
     with open('preprocessed/{}/user_sequence_dict'.format(fname), 'rb') as fout:
         user_item_score_time = pickle.load(fout)
+        max_time = 0
         user2idx, idx2user = load_dict(fname, "user")
         for k, v in user_item_score_time.items():
             if k in user2idx:
                 v.sort(key = lambda time: time[2])
+                if v[0][3] > max_time: max_time = v[0][3]
                 user_sequence_dict_filtered[k] = v
     with open('preprocessed/{}/user_sequence_dict_filtered'.format(fname), 'wb') as fout:
         pickle.dump(user_sequence_dict_filtered, fout)
+        pickle.dump(max_time, fout)
 
 
 def load_user_sequence_dict_filtered(fname):

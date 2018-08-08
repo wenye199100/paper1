@@ -121,6 +121,12 @@ class Graph():
         self.is_trainning = False
 
 if __name__ == '__main__':
+
+
+
+
+
+
     user2idx, idx2user, item2idx, idx2item = load_all_dict(hp.fname)
     if not os.path.exists('results'): os.mkdir('results')
     if not os.path.exists(hp.logdir + '/{}'.format(hp.fname)): os.mkdir(hp.logdir + '/{}'.format(hp.fname))

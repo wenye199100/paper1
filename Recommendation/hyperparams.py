@@ -4,12 +4,12 @@ class Hyperparams:
     data_fpath = 'data/'
     data_train = 'data/train'
     data_test = 'data/test'
-    fname = 'Musical_Instruments_5'
+    fname = 'ratings_Musical_Instruments'
 
-    dataset_name = ["movielens", "Musical_Instruments_5"]
-    type_dict = {"movielens": 0, "Musical_Instruments_5": 1}
-    prefix = {"movielens": "/", "Musical_Instruments_5": "/Musical_Instruments_5"}
-    postfix = {"movielens": "ratings.dat", "Musical_Instruments_5": ".json"}
+    dataset_name = ["movielens", "Musical_Instruments_5", "ratings_Musical_Instruments"]
+    type_dict = {"movielens": 0, "Musical_Instruments_5": 1, "ratings_Musical_Instruments":2}
+    prefix = {"movielens": "/", "Musical_Instruments_5": "/Musical_Instruments_5", "ratings_Musical_Instruments": "/ratings_Musical_Instruments"}
+    postfix = {"movielens": "ratings.dat", "Musical_Instruments_5": ".json", "ratings_Musical_Instruments":".csv"}
 
 
 
@@ -19,7 +19,7 @@ class Hyperparams:
     logdir = 'logdir'
 
     #model
-    max_len = 5
+    max_len = 100
     min_user_cnt = 10
     min_item_cnt = 10
     hidden_units = 512
